@@ -1,0 +1,50 @@
+#!/bin/sh
+
+rm -rf rootfs
+mkdir rootfs
+
+echo "untar ubuntu core"
+tar xzf ../ubuntu-core-14.04-core-amd64.tar.gz -C rootfs
+
+cp ../linux-headers-4.2.8-ckt4.02+_01_amd64.deb rootfs
+cp ../linux-image-4.2.8-ckt4.02+_01_amd64.deb rootfs
+
+# cp overlay/etc/init/ttyS0.conf rootfs/etc/init/ttyS0.conf
+# cp overlay/etc/init/ttyUSB0.conf rootfs/etc/init/ttyUSB0.conf
+
+echo "nameserver 208.67.222.222" > rootfs/etc/resolv.conf
+cat rootfs/etc/resolv.conf
+
+mount -t devtmpfs none rootfs/dev
+mount -t devpts none rootfs/dev/pts
+mount -t proc none rootfs/proc
+mount -t sysfs none rootfs/sys
+
+echo "update apt"
+chroot rootfs apt-get update
+
+echo "---"
+echo "install kernel headers"
+chroot rootfs dpkg -i linux-headers-4.2.8-ckt4.02+_01_amd64.deb
+
+echo "---"
+echo "install kernel image"
+chroot rootfs dpkg -i linux-image-4.2.8-ckt4.02+_01_amd64.deb
+
+echo "---"
+echo "install ssh server"
+chroot rootfs apt-get install openssh-server
+
+echo "---"
+echo "install network-manager"
+chroot rootfs apt-get install network-manager
+# chroot rootfs apt-get remove modemmanager
+# chroot rootfs apt-get install btrfs-tools
+# chroot rootfs apt-get install nano
+
+umount rootfs/sys
+umount rootfs/proc
+umount rootfs/dev/pts
+umount rootfs/dev
+
+
